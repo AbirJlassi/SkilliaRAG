@@ -1,0 +1,15 @@
+# Ignorer l’environnement virtuel
+venv/
+
+# Cache Python
+__pycache__/
+*.pyc
+
+# Données générées
+data/generated/
+*.pdf
+
+# Config IDE
+.vscode/
+.idea/
+.DS_Store
