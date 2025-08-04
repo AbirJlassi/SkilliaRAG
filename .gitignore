@@ -1,7 +1,8 @@
 # Ignorer l’environnement virtuel
 venv/
 
-.env/
+.env
+*.env
 
 # Cache Python
 __pycache__/
