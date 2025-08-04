@@ -6,11 +6,11 @@ from langchain.schema import Document
 import os
 from langchain.docstore.document import Document
 from langchain.vectorstores import FAISS
-
-from modules.loader import load_pdf
-from .embedder import get_embedding_model
+from modules.loader import load_pdf 
+from modules.embedder import get_embedding_model
 import datetime
 from fpdf import FPDF
+import datetime
 
 
 def build_faiss_index(documents: list[Document], embedding_model: HuggingFaceEmbeddings) -> FAISS:
@@ -42,47 +42,102 @@ def load_index(path: str, embedding_model: HuggingFaceEmbeddings) -> FAISS:
 
 def store_generated_proposal(proposal_text: str, index_path: str, metadata: dict = None):
     """
-    Sauvegarde une proposition générée en PDF et dans l’index FAISS.
+    Sauvegarde une proposition générée en PDF et dans l'index FAISS.
     """
+   
+    print("🛠 store_generated_proposal() is running")
+    
     if metadata is None:
         metadata = {}
-
+        
+    # Créer le dossier de sortie
     output_dir = "data/generated"
     os.makedirs(output_dir, exist_ok=True)
     print("📁 Dossier créé ou déjà existant :", output_dir)
-
+    
+    # Générer nom de fichier avec timestamp
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"propale_{timestamp}.pdf"
     filepath = os.path.join(output_dir, filename)
-
-    # Sauvegarde en PDF
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-
-    for line in proposal_text.split('\n'):
-        pdf.multi_cell(0, 10, line)
-
-    pdf.output(filepath)
-    print(f"✅ PDF sauvegardé dans : {filepath}")
-
-    # Lecture du PDF et ajout à l'index FAISS
-    doc = load_pdf(filepath)[0]
-    doc.metadata.update(metadata)
-    doc.metadata["source"] = filename
-    doc.metadata["generated_at"] = datetime.datetime.now().isoformat()
-
-    embedder = get_embedding_model()
-
+    
     try:
-        index = FAISS.load_local(index_path, embedder, allow_dangerous_deserialization=True)
-    except Exception as e:
-        print(f"⚠️ FAISS index introuvable. Nouveau créé. Raison : {e}")
-        index = FAISS.from_documents([], embedder)
-
-    index.add_documents([doc])
-    index.save_local(index_path)
-
-    print("💾 Propale indexée et sauvegardée FAISS.")
-    return filepath
+        # Sauvegarde en PDF avec gestion d'erreur
+        print("📝 Création du PDF...")
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        
+        # Traiter le texte ligne par ligne
+        lines = proposal_text.split('\n')
+        for line in lines:
+            try:
+                # Nettoyer les caractères problématiques pour FPDF
+                clean_line = line.encode('latin-1', 'replace').decode('latin-1')
+                pdf.multi_cell(0, 10, clean_line)
+            except Exception as line_error:
+                print(f"⚠️ Erreur sur une ligne: {line_error}")
+                pdf.multi_cell(0, 10, "[Ligne non encodable]")
+        
+        pdf.output(filepath)
+        print(f"✅ PDF sauvegardé dans : {filepath}")
+        
+        # Vérifier que le fichier existe
+        if not os.path.exists(filepath):
+            raise Exception(f"Le fichier PDF n'a pas été créé : {filepath}")
+            
+    except Exception as pdf_error:
+        print(f"❌ Erreur lors de la création du PDF: {pdf_error}")
+        raise pdf_error
+    
+    try:
+        # Lecture du PDF et ajout à l'index FAISS
+        print("📖 Chargement du PDF pour indexation...")
+        docs = load_pdf(filepath)
+        
+        if not docs:
+            raise Exception("Aucun document chargé depuis le PDF créé")
+            
+        doc = docs[0]
+        
+        # Mise à jour des métadonnées
+        doc.metadata.update(metadata)
+        doc.metadata["source"] = filename
+        doc.metadata["generated_at"] = datetime.datetime.now().isoformat()
+        doc.metadata["filepath"] = filepath
+        
+        print(f"📝 Document chargé avec {len(doc.page_content)} caractères")
+        print(f"📋 Métadonnées: {doc.metadata}")
+        
+        # Charger le modèle d'embedding
+        print("🤖 Chargement du modèle d'embedding...")
+        embedder = get_embedding_model()
+        
+        # Charger ou créer l'index FAISS
+        try:
+            print(f"📂 Chargement de l'index FAISS: {index_path}")
+            index = FAISS.load_local(index_path, embedder, allow_dangerous_deserialization=True)
+            print("✅ Index FAISS existant chargé")
+        except Exception as faiss_load_error:
+            print(f"⚠️ FAISS index introuvable. Création d'un nouveau. Erreur: {faiss_load_error}")
+            # Créer un nouvel index
+            from langchain.schema import Document
+            temp_doc = Document(page_content="document temporaire", metadata={})
+            index = FAISS.from_documents([temp_doc], embedder)
+        
+        # Ajouter le document à l'index
+        print("➕ Ajout du document à l'index...")
+        index.add_documents([doc])
+        
+        # Sauvegarder l'index
+        print("💾 Sauvegarde de l'index FAISS...")
+        index.save_local(index_path)
+        
+        print("✅ Propale indexée et sauvegardée dans FAISS.")
+        return filepath
+        
+    except Exception as index_error:
+        print(f"❌ Erreur lors de l'indexation: {index_error}")
+        print("⚠️ Le PDF a été créé mais l'indexation a échoué")
+        # Retourner quand même le filepath du PDF créé
+        return filepath
 

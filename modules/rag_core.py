@@ -1,5 +1,6 @@
 # modules/rag_core.py
 
+from itertools import chain
 from modules.vector_store import load_index
 from modules.embedder import get_embedding_model
 from modules.llm_groq import get_llm
@@ -25,7 +26,7 @@ def full_rag_pipeline(query: str, index_path: str = "vector_store/propales_index
 
     # 3. Reranking CrossEncoder
     reranked_docs = rerank(query, retrieved_docs, top_k=final_k)
-    print(f"🏆 {len(reranked_docs)} documents après reranking.")
+    print(f" {len(reranked_docs)} documents après reranking.")
 
     # 4. Génération via StuffDocumentsChain
     docs = [doc for doc, _ in reranked_docs]
@@ -35,7 +36,10 @@ def full_rag_pipeline(query: str, index_path: str = "vector_store/propales_index
 
     llm_chain = LLMChain(llm=llm, prompt=prompt, verbose=True)
     chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name="context", verbose=True)
+    print("🧾 Nombre de documents injectés dans le prompt :", len(docs))
+    for i, doc in enumerate(docs):
+        print(f"Document {i+1} - {len(doc.page_content)} caractères - Source: {doc.metadata.get('source', 'N/A')}")
 
-    result = chain.run(input_documents=docs, question=query)
+    result = chain.run({"input_documents": docs, "question": query})
 
     return result, reranked_docs

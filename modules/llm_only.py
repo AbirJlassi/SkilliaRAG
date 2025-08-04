@@ -43,10 +43,10 @@ def compute_chunk_coverage(rag_text, top_chunks):
     return matched_chars / total_chars if total_chars > 0 else 0
 
 
-def highlight_with_chunks(rag_text: str, chunks, threshold: float = 0.8) -> str:
-    """
-    Met en surbrillance les passages du texte RAG similaires aux chunks utilisés.
-    """
+"""def highlight_with_chunks(rag_text: str, chunks, threshold: float = 0.8) -> str:
+    
+    #Met en surbrillance les passages du texte RAG similaires aux chunks utilisés.
+    
     highlighted = rag_text
     for chunk, _ in chunks:
         chunk_text = chunk.page_content.strip()
@@ -65,3 +65,4 @@ def highlight_with_chunks(rag_text: str, chunks, threshold: float = 0.8) -> str:
             )
 
     return highlighted
+"""

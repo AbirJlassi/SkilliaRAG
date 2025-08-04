@@ -10,7 +10,8 @@ from modules.splitter import splitdocuments
 from modules.vector_store import load_index
 from main import prepare_index_from_directory 
 from modules.llm_only import generate_without_docs
-from modules.llm_only import compute_similarity, compute_chunk_coverage, highlight_with_chunks
+from modules.llm_only import compute_similarity, compute_chunk_coverage
+
 # -----------------------------------------------
 # CONFIGURATION GÉNÉRALE
 # -----------------------------------------------
@@ -23,7 +24,7 @@ st.set_page_config(
 
 # -----------------------------------------------
 # CSS PROFESSIONNEL
-# # -----------------------------------------------
+# -----------------------------------------------
 
 st.markdown("""
     <style>
@@ -259,19 +260,15 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-
-
-
 # Bouton admin pour recharger les documents
 with st.expander("⚙️ Options avancées – Réindexation des documents"):
     if st.button("🔄 Recharger les documents internes (PDF)"):
         with st.spinner("📥 Lecture des documents, découpage et indexation en cours..."):
-
             data_dir = "data"
             index_path = "vector_store/propales_index"
 
             # 1. Charger les PDF
-            pdf_files = glob.glob(os.path.join(data_dir, "*.pdf"))
+            pdf_files = glob.glob(os.path.join(data_dir, "**", "*.pdf"), recursive=True)
             st.write(f"📄 **{len(pdf_files)} fichiers PDF trouvés dans `{data_dir}`.**")
 
             all_documents = []
@@ -283,13 +280,12 @@ with st.expander("⚙️ Options avancées – Réindexation des documents"):
 
             # 2. Chunking
             chunks = splitdocuments(all_documents)
-            st.write(f"🧩 **{len(chunks)} chunks générés** pour l’indexation.")
+            st.write(f"🧩 **{len(chunks)} chunks générés** pour l'indexation.")
 
             # 3. Ingestion finale
             prepare_index_from_directory(data_dir, index_path)
 
         st.success("✅ Index vectoriel reconstruit avec succès à partir des nouveaux documents !")
-
 
 # -------------------
 # SECTION PRINCIPALE
@@ -301,16 +297,12 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-
-
 user_query = st.text_area(
-    "",
+    "Décrivez le besoin client :",
     height=150,
     placeholder="💡 Exemple : Proposer un accompagnement cybersécurité pour une banque publique ou une mission IA pour une société...\n\nDécrivez ici la problématique du client, ses enjeux et ses contraintes.",
     help="Plus votre description est précise, plus la proposition générée sera pertinente et adaptée."
 )
-
-
 
 # -----------------------------------------------
 # BOUTON DE GÉNÉRATION
@@ -330,6 +322,8 @@ with col_btn2:
 # -----------------------------------------------
 if generate_button:
     if user_query.strip():
+        st.session_state["proposal_ready"] = True
+        
         with st.spinner("🔍 Analyse des documents en cours..."):
             progress_bar = st.progress(0)
             import time
@@ -338,17 +332,20 @@ if generate_button:
                 progress_bar.progress(i + 1)
             
             result, top_chunks = full_rag_pipeline(user_query)
+            st.session_state["last_result"] = result
+            st.session_state["last_chunks"] = top_chunks
+            st.session_state["last_query"] = user_query
 
         with st.spinner("✨ Génération via LLM seul (sans contexte)..."):
             result_llm_only = generate_without_docs(user_query)
 
         similarity_score = compute_similarity(result, result_llm_only)
         coverage_score = compute_chunk_coverage(result, top_chunks)
-        highlighted_rag_result = highlight_with_chunks(result, top_chunks)
+        #highlighted_rag_result = highlight_with_chunks(result, top_chunks)
 
         score_color = "#10b981" if similarity_score >= 0.75 else "#f59e0b" if similarity_score >= 0.5 else "#ef4444"
 
-        st.markdown("""
+        st.markdown(f"""
             <div class="modern-card">
                 <h3 class="section-header">📊 Comparaison RAG vs LLM seul</h3>
                 <p style="color: var(--text-gray);">
@@ -358,13 +355,13 @@ if generate_button:
                     <div style="flex: 1; background: #f8fafc; border-left: 4px solid #2e2e9b; padding: 1.5rem; border-radius: 12px;">
                         <h4 style="margin-top: 0;">📄 Proposition via RAG</h4>
                         <div style="white-space: pre-wrap; font-size: 0.95rem; font-family: monospace;">
-                            {rag_result}
+                            {result}
                         </div>
                     </div>
                     <div style="flex: 1; background: #f8fafc; border-left: 4px solid #00c9ff; padding: 1.5rem; border-radius: 12px;">
                         <h4 style="margin-top: 0;">🤖 Proposition LLM seul</h4>
                         <div style="white-space: pre-wrap; font-size: 0.95rem; font-family: monospace;">
-                            {llm_result}
+                            {result_llm_only}
                         </div>
                     </div>
                 </div>
@@ -383,7 +380,8 @@ if generate_button:
                     </div>
                 </div>
             </div>
-        """.format(rag_result=highlighted_rag_result, llm_result=result_llm_only, similarity_score=similarity_score, score_color=score_color, coverage_score=coverage_score), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+        
         # -----------------------------------------------
         # DOCUMENTS SOURCES
         # -----------------------------------------------
@@ -419,54 +417,103 @@ if generate_button:
                     </div>
                 """, unsafe_allow_html=True)
 
-        # -----------------------------------------------
-        # SECTION FEEDBACK
-        # -----------------------------------------------
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("""
-            <div class="modern-card">
-                <h3 class="section-header">🗳️ Évaluation de la proposition</h3>
-                <p style="color: var(--text-gray); margin-bottom: 1.5rem;">
-                    Votre retour nous aide à améliorer la qualité des propositions générées.
-                </p>
-            </div>
-        """, unsafe_allow_html=True)
-
-        col_fb1, col_fb2, col_fb3 = st.columns([1, 1, 1])
-        
-        with col_fb1:
-            if st.button("👍 Excellente proposition", use_container_width=True, key="btn_good"):
-                try:
-                    st.write("📤 Sauvegarde de la proposition...")
-                    filepath = handle_feedback(user_query, result)
-                    if filepath:
-                        st.success("🎉 Proposition sauvegardée avec succès !")
-                        st.markdown(f"📁 Fichier PDF créé : `{os.path.basename(filepath)}`")
-                except Exception as e:
-                    st.error(f"❌ Erreur lors de la sauvegarde : {e}")
-        
-        with col_fb2:
-            if st.button("⚡ Bonne, mais à améliorer", use_container_width=True, key="btn_ok"):
-                st.markdown("""
-                    <div style="background: #fef3c7; color: #92400e; padding: 1rem; border-radius: 12px; text-align: center;">
-                        📝 Merci pour ce retour constructif !
-                    </div>
-                """, unsafe_allow_html=True)
-        
-        with col_fb3:
-            if st.button("👎 Non satisfaisante", use_container_width=True, key="btn_bad"):
-                st.markdown("""
-                    <div class="status-warning">
-                        🔄 Merci pour votre retour. Essayez de reformuler votre demande pour de meilleurs résultats.
-                    </div>
-                """, unsafe_allow_html=True)
-
     else:
         st.markdown("""
             <div class="status-warning">
                 ⚠️ Veuillez décrire le besoin client avant de générer une proposition.
             </div>
         """, unsafe_allow_html=True)
+
+# -----------------------------------------------
+# SECTION FEEDBACK - UNE SEULE FOIS !
+# -----------------------------------------------
+if "last_result" in st.session_state:
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("""
+        <div class="modern-card">
+            <h3 class="section-header">🗳️ Évaluation de la proposition</h3>
+            <p style="color: var(--text-gray); margin-bottom: 1.5rem;">
+                Votre retour nous aide à améliorer la qualité des propositions générées.
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    col_fb1, col_fb2, col_fb3 = st.columns([1, 1, 1])
+
+    with col_fb1:
+        if st.button("👍 Excellente proposition", use_container_width=True, key="btn_good"):
+            st.write("🔍 DEBUG: Bouton cliqué")
+            
+            # Vérifier l'état de session
+            if "last_result" not in st.session_state:
+                st.error("❌ Pas de résultat en session")
+                st.stop()
+            
+            if "last_query" not in st.session_state:
+                st.error("❌ Pas de query en session")
+                st.stop()
+            
+            # Afficher les données
+            #st.write("📊 Données en session:")
+            #st.write(f"- Query: {len(st.session_state['last_query'])} caractères")
+            #st.write(f"- Result: {len(st.session_state['last_result'])} caractères")
+            
+            with st.spinner("📄 Sauvegarde de la proposition dans les données..."):
+                try:
+                    #st.write("🔄 Appel de handle_feedback...")
+                    
+                    filepath = handle_feedback(
+                        st.session_state["last_query"],
+                        st.session_state["last_result"]
+                    )
+                    
+                    
+                    if filepath:
+                        st.toast("📄 PDF sauvegardé et indexé avec succès.")
+                        st.success("✅ Proposition ajoutée à la base documentaire !")
+                        st.markdown(f"**Fichier créé :** `{filepath}`")
+                        
+                        # Vérifications finales
+                        if os.path.exists(filepath):
+                            file_size = os.path.getsize(filepath)
+                            #st.write(f"✅ **Fichier confirmé** - Taille: {file_size:,} bytes")
+                            
+                            # Lister les fichiers dans le dossier
+                            data_dir = "data/generated"
+                            if os.path.exists(data_dir):
+                                files = os.listdir(data_dir)
+                                #st.write(f"📂 **Fichiers dans {data_dir}:** {len(files)}")
+                                #for f in files[-3:]:  # Montrer les 3 derniers
+                                    #st.write(f"  - {f}")
+                        else:
+                            st.error(f"❌ **Fichier non trouvé:** {filepath}")
+                    else:
+                        st.error("❌ **Aucun fichier retourné** par handle_feedback")
+                        
+                except Exception as e:
+                    st.error(f"❌ **Erreur lors de la sauvegarde:** {str(e)}")
+                    
+                    # Debug détaillé
+                    with st.expander("🔍 Détails de l'erreur"):
+                        st.code(str(e))
+                        import traceback
+                        st.code(traceback.format_exc())
+
+    with col_fb2:
+        if st.button("⚡️ Bonne, mais à améliorer", use_container_width=True, key="btn_ok"):
+            st.markdown("""
+                <div style="background: #fef3c7; color: #92400e; padding: 1rem; border-radius: 12px; text-align: center;">
+                    📝 Merci pour ce retour constructif !
+                </div>
+            """, unsafe_allow_html=True)
+
+    with col_fb3:
+        if st.button("👎 Non satisfaisante", use_container_width=True, key="btn_bad"):
+            st.markdown("""
+                <div class="status-warning">
+                    🔄 Merci pour votre retour. Essayez de reformuler votre demande pour de meilleurs résultats.
+                </div>
+            """, unsafe_allow_html=True)
 
 # -----------------------------------------------
 # FOOTER INFORMATIF
