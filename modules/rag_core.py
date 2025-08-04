@@ -20,7 +20,7 @@ def full_rag_pipeline(query: str, index_path: str = "vector_store/propales_index
     index = load_index(index_path, embedder)
 
     # 2. Recherche initiale FAISS
-    retrieved_docs = index.similarity_search(query, k=faiss_k)
+    retrieved_docs = index.similarity_search(query, k=faiss_k) # type: ignore
     print(f"🔍 {len(retrieved_docs)} documents récupérés par FAISS.")
 
     # 3. Reranking CrossEncoder

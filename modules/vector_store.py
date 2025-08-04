@@ -40,11 +40,11 @@ def load_index(path: str, embedding_model: HuggingFaceEmbeddings) -> FAISS:
 
 
 
-def store_generated_proposal(proposal_text: str, index_path: str, metadata: dict = None):
+def store_generated_proposal(proposal_text: str, index_path: str, metadata: dict = None): # type: ignore
     """
     Sauvegarde une proposition générée en PDF et dans l’index FAISS.
     """
-    if metadata is None:
+    if metadata is None: # type: ignore
         metadata = {}
 
     output_dir = "data/generated"
@@ -61,16 +61,16 @@ def store_generated_proposal(proposal_text: str, index_path: str, metadata: dict
     pdf.set_font("Arial", size=12)
 
     for line in proposal_text.split('\n'):
-        pdf.multi_cell(0, 10, line)
+        pdf.multi_cell(0, 10, line) # type: ignore
 
     pdf.output(filepath)
     print(f"✅ PDF sauvegardé dans : {filepath}")
 
     # Lecture du PDF et ajout à l'index FAISS
     doc = load_pdf(filepath)[0]
-    doc.metadata.update(metadata)
-    doc.metadata["source"] = filename
-    doc.metadata["generated_at"] = datetime.datetime.now().isoformat()
+    doc.metadata.update(metadata) # type: ignore
+    doc.metadata["source"] = filename # type: ignore
+    doc.metadata["generated_at"] = datetime.datetime.now().isoformat() # type: ignore
 
     embedder = get_embedding_model()
 

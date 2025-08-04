@@ -9,8 +9,17 @@ from modules.feedback import handle_feedback
 from modules.splitter import splitdocuments
 from modules.vector_store import load_index
 from main import prepare_index_from_directory 
-from modules.llm_only import generate_without_docs
-from modules.llm_only import compute_similarity, compute_chunk_coverage, highlight_with_chunks
+#from modules.llm_only import generate_without_docs
+#from modules.llm_only import compute_similarity, compute_chunk_coverage, highlight_with_chunks
+from modules.llm_only import (
+    generate_without_docs, 
+    compute_similarity, 
+    compute_chunk_coverage, 
+    highlight_with_chunks,
+    compute_ngram_overlap_for_chunks,
+    semantic_similarity_chunks_response,
+)
+
 # -----------------------------------------------
 # CONFIGURATION GÉNÉRALE
 # -----------------------------------------------
@@ -82,6 +91,7 @@ st.markdown("""
             border: 1px solid var(--border-color);
             margin-bottom: 2rem;
             transition: all 0.3s ease;
+            color: var(--text-dark);
         }
 
         .modern-card:hover {
@@ -131,6 +141,7 @@ st.markdown("""
             font-size: 1rem;
             transition: border-color 0.3s ease;
             background: var(--background-white);
+            color : red;
         }
 
         .stTextArea > div > div > textarea:focus {
@@ -296,7 +307,7 @@ with st.expander("⚙️ Options avancées – Réindexation des documents"):
 # -------------------
 
 st.markdown("""
-    <div class="modern-card">
+    <div class="modern-card" >
         <h3 class="section-header">💬 Décrivez le besoin client</h3>
     </div>
 """, unsafe_allow_html=True)
@@ -331,23 +342,24 @@ with col_btn2:
 if generate_button:
     if user_query.strip():
         with st.spinner("🔍 Analyse des documents en cours..."):
-            progress_bar = st.progress(0)
-            import time
-            for i in range(100):
-                time.sleep(0.01)
-                progress_bar.progress(i + 1)
-            
+            # Ton code existant pour RAG
             result, top_chunks = full_rag_pipeline(user_query)
 
         with st.spinner("✨ Génération via LLM seul (sans contexte)..."):
             result_llm_only = generate_without_docs(user_query)
 
+        # Calculs métriques existants
         similarity_score = compute_similarity(result, result_llm_only)
         coverage_score = compute_chunk_coverage(result, top_chunks)
         highlighted_rag_result = highlight_with_chunks(result, top_chunks)
 
+        # --- Nouveaux calculs ---
+        ngram_overlaps = compute_ngram_overlap_for_chunks(result, top_chunks, n=3)
+        semantic_sims = semantic_similarity_chunks_response(result, top_chunks)
+
         score_color = "#10b981" if similarity_score >= 0.75 else "#f59e0b" if similarity_score >= 0.5 else "#ef4444"
 
+        # Affichage existant + nouvelle section métriques chunks
         st.markdown("""
             <div class="modern-card">
                 <h3 class="section-header">📊 Comparaison RAG vs LLM seul</h3>
@@ -381,9 +393,33 @@ if generate_button:
                             {coverage_score:.2%}
                         </p>
                     </div>
+                    <div style="flex: 1;">
+                        <h4 style="margin-bottom: 0.5rem;">📊 Métriques détaillées par chunk :Recouvrement trigrammes (n-gram overlap)</h4>
+                        <p style="font-size: 1.3rem; font-weight: bold; color: #2e2e9b;">
+                             {ngram_table}
+                        </p>
+                    </div>
+                     <div style="flex: 1;">
+                        <h4 style="margin-bottom: 0.5rem;">📊 Similarité sémantique par chunk</h4>
+                        <p style="font-size: 1.3rem; font-weight: bold; color: #2e2e9b;">
+                             {semantic_table}
+                        </p>
+                    </div>
                 </div>
-            </div>
-        """.format(rag_result=highlighted_rag_result, llm_result=result_llm_only, similarity_score=similarity_score, score_color=score_color, coverage_score=coverage_score), unsafe_allow_html=True)
+
+            
+        """.format(
+            rag_result=highlighted_rag_result,
+            llm_result=result_llm_only,
+            similarity_score=similarity_score,
+            score_color=score_color,
+            coverage_score=coverage_score,
+            ngram_table="".join(f"<p>Chunk #{i+1}: {score:.2%}</p>" for i, score in ngram_overlaps),
+            semantic_table="".join(f"<p>Chunk #{i+1}: {score:.2%}</p>" for i, score in semantic_sims),
+        ), unsafe_allow_html=True)
+
+        
+
         # -----------------------------------------------
         # DOCUMENTS SOURCES
         # -----------------------------------------------

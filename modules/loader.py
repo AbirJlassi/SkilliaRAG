@@ -14,6 +14,6 @@ def load_pdf(path: str) -> List[Document]:
     # Ajoute une clé 'source' dans les métadonnées
     source_name = os.path.basename(path)
     for doc in docs:
-        doc.metadata["source"] = source_name
+        doc.metadata["source"] = source_name # type: ignore
 
     return docs
