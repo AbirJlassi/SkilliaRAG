@@ -16,7 +16,8 @@ def get_llm(model: str = "llama3-8b-8192") -> BaseChatModel:
 
     return ChatGroq(
         groq_api_key=os.environ["GROQ_API_KEY"],
-        model_name=model
+        model_name=model,
+        temperature=0.1
     )
 
 

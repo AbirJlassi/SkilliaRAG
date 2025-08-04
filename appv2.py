@@ -10,7 +10,7 @@ from modules.splitter import splitdocuments
 from modules.vector_store import load_index
 from main import prepare_index_from_directory 
 from modules.llm_only import generate_without_docs
-from modules.llm_only import compute_similarity
+from modules.llm_only import compute_similarity, compute_chunk_coverage, highlight_with_chunks
 # -----------------------------------------------
 # CONFIGURATION GÉNÉRALE
 # -----------------------------------------------
@@ -330,9 +330,7 @@ with col_btn2:
 # -----------------------------------------------
 if generate_button:
     if user_query.strip():
-        # Animation de chargement
         with st.spinner("🔍 Analyse des documents en cours..."):
-            # Simulation de progression pour UX
             progress_bar = st.progress(0)
             import time
             for i in range(100):
@@ -341,60 +339,51 @@ if generate_button:
             
             result, top_chunks = full_rag_pipeline(user_query)
 
-        # Message de succès
-        st.markdown("""
-            <div class="status-success">
-                ✅ Proposition générée avec succès ! Voici votre proposition commerciale personnalisée.
-            </div>
-        """, unsafe_allow_html=True)
-
-        # -----------------------------------------------
-        # RÉSULTAT PRINCIPAL
-        # -----------------------------------------------
-
-        st.markdown("""
-            <div class="modern-card">
-                <h3 class="section-header">📄 Proposition commerciale générée</h3>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown(f"""
-            <div class="result-container">
-                {result}
-            </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("""
-            <div class="modern-card">
-                <h3 class="section-header">  Comparaison avec LLM seul</h3>
-                <p style="color: var(--text-gray); margin-bottom: 1.5rem;">
-                    Génération d'une proposition uniquement par le LLM (sans documents internes) et comparaison avec le résultat RAG.
-                </p>
-            </div>
-        """, unsafe_allow_html=True)
-
         with st.spinner("✨ Génération via LLM seul (sans contexte)..."):
             result_llm_only = generate_without_docs(user_query)
-            #result_llm_only = result_llm_only.content 
 
         similarity_score = compute_similarity(result, result_llm_only)
+        coverage_score = compute_chunk_coverage(result, top_chunks)
+        highlighted_rag_result = highlight_with_chunks(result, top_chunks)
 
-        st.markdown(f"""
-            <div class="result-container">
-                <b>🔄 Score de similarité :</b> {similarity_score:.2f} 
-            </div>
-        """, unsafe_allow_html=True)
+        score_color = "#10b981" if similarity_score >= 0.75 else "#f59e0b" if similarity_score >= 0.5 else "#ef4444"
 
-        st.markdown("#### 💡 Proposition générée par le LLM seul :")
-        st.markdown(f"""
-            <div class="chunk-container">
-                <div style="font-family: monospace; white-space: pre-wrap; font-size: 0.95rem;">
-                    {result_llm_only}
+        st.markdown("""
+            <div class="modern-card">
+                <h3 class="section-header">📊 Comparaison RAG vs LLM seul</h3>
+                <p style="color: var(--text-gray);">
+                    Comparaison entre la réponse enrichie par les documents internes (RAG) et celle générée uniquement par le LLM. Le score de similarité indique leur proximité, tandis que le taux de couverture estime à quel point la réponse RAG reprend des passages des documents.
+                </p>
+                <div style="display: flex; gap: 2rem;">
+                    <div style="flex: 1; background: #f8fafc; border-left: 4px solid #2e2e9b; padding: 1.5rem; border-radius: 12px;">
+                        <h4 style="margin-top: 0;">📄 Proposition via RAG</h4>
+                        <div style="white-space: pre-wrap; font-size: 0.95rem; font-family: monospace;">
+                            {rag_result}
+                        </div>
+                    </div>
+                    <div style="flex: 1; background: #f8fafc; border-left: 4px solid #00c9ff; padding: 1.5rem; border-radius: 12px;">
+                        <h4 style="margin-top: 0;">🤖 Proposition LLM seul</h4>
+                        <div style="white-space: pre-wrap; font-size: 0.95rem; font-family: monospace;">
+                            {llm_result}
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; gap: 2rem;">
+                    <div style="flex: 1;">
+                        <h4 style="margin-bottom: 0.5rem;">🔄 Score de similarité :</h4>
+                        <p style="font-size: 1.3rem; font-weight: bold; color: {score_color};">
+                            {similarity_score:.2f} / 1.00
+                        </p>
+                    </div>
+                    <div style="flex: 1;">
+                        <h4 style="margin-bottom: 0.5rem;">📚 Taux de couverture des documents :</h4>
+                        <p style="font-size: 1.3rem; font-weight: bold; color: #2e2e9b;">
+                            {coverage_score:.2%}
+                        </p>
+                    </div>
                 </div>
             </div>
-        """, unsafe_allow_html=True)
-
+        """.format(rag_result=highlighted_rag_result, llm_result=result_llm_only, similarity_score=similarity_score, score_color=score_color, coverage_score=coverage_score), unsafe_allow_html=True)
         # -----------------------------------------------
         # DOCUMENTS SOURCES
         # -----------------------------------------------
@@ -402,7 +391,7 @@ if generate_button:
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
             <div class="modern-card">
-                <h3 class="section-header">📚 Sources utilisées pour la génération</h3>
+                <h3 class="section-header">📚 Sources utilisées pour la génération (avec RAG) </h3>
                 <p style="color: var(--text-gray); margin-bottom: 1.5rem;">
                     Les extraits suivants ont été analysés pour construire votre proposition :
                 </p>
