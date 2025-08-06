@@ -341,7 +341,6 @@ if generate_button:
 
         similarity_score = compute_similarity(result, result_llm_only)
         coverage_score = compute_chunk_coverage(result, top_chunks)
-        #highlighted_rag_result = highlight_with_chunks(result, top_chunks)
 
         score_color = "#10b981" if similarity_score >= 0.75 else "#f59e0b" if similarity_score >= 0.5 else "#ef4444"
 
@@ -425,7 +424,7 @@ if generate_button:
         """, unsafe_allow_html=True)
 
 # -----------------------------------------------
-# SECTION FEEDBACK - UNE SEULE FOIS !
+# SECTION FEEDBACK 
 # -----------------------------------------------
 if "last_result" in st.session_state:
     st.markdown("<br>", unsafe_allow_html=True)

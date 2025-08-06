@@ -1,9 +1,12 @@
 # modules/llm_only.py
 from sentence_transformers import SentenceTransformer, util
-
 from modules.llm_groq import get_llm
 from modules.prompt_template import get_proposal_prompt_template
-
+from typing import List
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.schema import Document
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 def generate_without_docs(query: str, model: str = "llama3-8b-8192") -> str:
     """
@@ -29,40 +32,27 @@ def compute_similarity(text1: str, text2: str) -> float:
     return score.item()  # Retourne un float
 
 
-from difflib import SequenceMatcher
 
-def compute_chunk_coverage(rag_text, top_chunks):
-    matched_chars = 0
-    total_chars = len(rag_text)
-
-    for doc, _ in top_chunks:
-        matcher = SequenceMatcher(None, rag_text, doc.page_content)
-        match = matcher.find_longest_match(0, len(rag_text), 0, len(doc.page_content))
-        matched_chars += match.size
-
-    return matched_chars / total_chars if total_chars > 0 else 0
+#--------------------------------------------------------
+#COMPUTING chunk coverage based on semantic similarity
+#--------------------------------------------------------
 
 
-"""def highlight_with_chunks(rag_text: str, chunks, threshold: float = 0.8) -> str:
-    
-    #Met en surbrillance les passages du texte RAG similaires aux chunks utilisés.
-    
-    highlighted = rag_text
-    for chunk, _ in chunks:
-        chunk_text = chunk.page_content.strip()
-        if not chunk_text:
-            continue
+embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-        # Cherche des correspondances proches dans le texte généré
-        matcher = SequenceMatcher(None, rag_text.lower(), chunk_text.lower())
-        match = matcher.find_longest_match(0, len(rag_text), 0, len(chunk_text))
-        
-        if match.size > 20:  # ignorer les trop petits bouts
-            matched_str = rag_text[match.a: match.a + match.size]
-            highlighted = highlighted.replace(
-                matched_str,
-                f"<mark style='background-color: #fffa9e;'>{matched_str}</mark>"
-            )
+def compute_chunk_coverage(generated_text: str, chunks: List[tuple[Document, float]]) -> float:
+    """
+    Calcule la couverture sémantique entre la propale générée et les chunks utilisés (via embeddings).
+    """
+    # Embedding du texte généré
+    generated_embedding = embedder.embed_query(generated_text)
 
-    return highlighted
-"""
+    # Embedding des chunks (leur texte seulement)
+    chunk_embeddings = [embedder.embed_query(doc.page_content) for doc, _ in chunks]
+
+    # Similarité cosinus entre la proposition et chaque chunk
+    similarities = cosine_similarity([generated_embedding], chunk_embeddings)[0]
+
+    # Moyenne des similarités
+    coverage_score = float(np.mean(similarities))
+    return coverage_score
