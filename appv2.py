@@ -346,6 +346,7 @@ if generate_button:
         # Calculs métriques existants
         similarity_score = compute_similarity(result, result_llm_only)
         coverage_score = compute_chunk_coverage(result, top_chunks)
+        highlighted_rag_result = highlight_with_chunks(result, top_chunks)
 
         # --- Nouveaux calculs ---
         ngram_overlaps = compute_ngram_overlap_for_chunks(result, top_chunks, n=3)
@@ -364,13 +365,13 @@ if generate_button:
                     <div style="flex: 1; background: #f8fafc; border-left: 4px solid #2e2e9b; padding: 1.5rem; border-radius: 12px;">
                         <h4 style="margin-top: 0;">📄 Proposition via RAG</h4>
                         <div style="white-space: pre-wrap; font-size: 0.95rem; font-family: monospace;">
-                            {result}
+                            {rag_result}
                         </div>
                     </div>
                     <div style="flex: 1; background: #f8fafc; border-left: 4px solid #00c9ff; padding: 1.5rem; border-radius: 12px;">
                         <h4 style="margin-top: 0;">🤖 Proposition LLM seul</h4>
                         <div style="white-space: pre-wrap; font-size: 0.95rem; font-family: monospace;">
-                            {result_llm_only}
+                            {llm_result}
                         </div>
                     </div>
                 </div>
