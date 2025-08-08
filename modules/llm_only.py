@@ -6,7 +6,7 @@ import re
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-from modules.llm_groq import get_llm
+from modules.llm_openai import get_llm
 from modules.prompt_template import get_proposal_prompt_template
 from typing import List
 from langchain.embeddings import HuggingFaceEmbeddings
@@ -16,7 +16,7 @@ import numpy as np
 # Modèle pour embeddings
 embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 
-def generate_without_docs(query: str, model: str = "llama3-8b-8192") -> str:
+def generate_without_docs(query: str, model: str =  "gpt-3.5-turbo") -> str:
     llm = get_llm(model)
     prompt = f"Rédige une proposition commerciale détaillée EN FRANCAIS en réponse à la demande suivante :\n{query}"
     response = llm.invoke(prompt)
