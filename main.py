@@ -6,6 +6,9 @@ from modules.loader import load_pdf
 from modules.splitter import splitdocuments
 from modules.embedder import get_embedding_model
 from modules.vector_store import build_faiss_index, save_index
+from fpdf import FPDF
+from pptx import Presentation
+from pptx.util import Inches, Pt
 
 def prepare_index_from_directory(data_dir: str, index_path: str):
     """
@@ -36,6 +39,9 @@ def prepare_index_from_directory(data_dir: str, index_path: str):
     save_index(index, index_path)
 
     print("✅ Index vectoriel FAISS créé et sauvegardé avec succès.")
+    
+
+
 
 if __name__ == "__main__":
     DATA_DIR = "data"
