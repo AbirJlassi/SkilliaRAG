@@ -354,218 +354,220 @@ if generate_button:
             st.session_state["last_result"] = result
             st.session_state["last_chunks"] = top_chunks
             st.session_state["last_query"] = user_query
-
-
-        # Affichage 
-        result_text = st.session_state.get("last_result", "")
-        if result_text:
-            st.markdown(f"""
-            <div class="modern-card">
-                <h3 class="section-header">📄 Proposition Générée</h3>
-                <div style="white-space: pre-wrap; font-size: 1rem; line-height: 1.5;">
-                    {result_text}
-                </div>
+    else:
+        st.markdown("""
+            <div class="status-warning">
+                ⚠️ Veuillez décrire le besoin client avant de générer une proposition.
             </div>
-            """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-            # --- GÉNÉRER PDF EN MEMOIRE (VERSION CORRIGÉE) ---
+# ---------------------------------------------------------------------------------
+# AFFICHAGE DES RÉSULTATS (SÉPARÉ DE LA GÉNÉRATION)
+# ---------------------------------------------------------------------------------
+# Afficher si des résultats existent, même sans cliquer sur "Générer"
+if "last_result" in st.session_state and st.session_state.get("last_result", "").strip():
+    result_text = st.session_state["last_result"]
+    
+    st.markdown(f"""
+    <div class="modern-card">
+        <h3 class="section-header">📄 Proposition Générée</h3>
+        <div style="white-space: pre-wrap; font-size: 1rem; line-height: 1.5;">
+            {result_text}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # --- GÉNÉRER PDF EN MEMOIRE  ---
+    try:
+        from fpdf import FPDF
+        import io
+        import textwrap
+        
+        class UTF8PDF(FPDF):
+            def header(self):
+                if self.page_no() == 1:  # En-tête seulement sur la première page
+                    self.set_font('Arial', 'B', 14)
+                    self.cell(0, 10, 'Proposition Générée', 0, 1, 'C')
+                    self.ln(5)
             
+            def footer(self):
+                self.set_y(-15)
+                self.set_font('Arial', 'I', 8)
+                self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
+        
+        # Créer le PDF avec des marges appropriées
+        pdf = UTF8PDF()
+        pdf.set_margins(left=20, top=20, right=20)
+        pdf.set_auto_page_break(auto=True, margin=20)
+        pdf.add_page()
+        
+        # Police et taille appropriées
+        pdf.set_font("Arial", size=10)
+        
+        # Nettoyer et préparer le texte
+        clean_text = result_text.replace('\r\n', '\n').replace('\r', '\n')
+        
+        # Diviser en lignes et traiter chaque ligne
+        lines = clean_text.split('\n')
+        
+        for line in lines:
             try:
-                from fpdf import FPDF
-                import io
-                import textwrap
+                # Nettoyer les caractères problématiques
+                clean_line = line.encode('latin-1', 'replace').decode('latin-1')
+                clean_line = clean_line.strip()
                 
-                class UTF8PDF(FPDF):
-                    def header(self):
-                        if self.page_no() == 1:  # En-tête seulement sur la première page
-                            self.set_font('Arial', 'B', 14)
-                            self.cell(0, 10, 'Proposition Générée', 0, 1, 'C')
-                            self.ln(5)
+                if not clean_line:
+                    # Ligne vide - ajouter un petit espace
+                    pdf.ln(3)
+                    continue
+                
+                # Si la ligne est très longue, la découper
+                if len(clean_line) > 120:
+                    wrapped_lines = textwrap.wrap(clean_line, width=120)
+                    for wrapped_line in wrapped_lines:
+                        pdf.cell(0, 6, wrapped_line, 0, 1)
+                else:
                     
-                    def footer(self):
-                        self.set_y(-15)
-                        self.set_font('Arial', 'I', 8)
-                        self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
-                
-                # Créer le PDF avec des marges appropriées
-                pdf = UTF8PDF()
-                pdf.set_margins(left=20, top=20, right=20)
-                pdf.set_auto_page_break(auto=True, margin=20)
-                pdf.add_page()
-                
-                # Police et taille appropriées
-                pdf.set_font("Arial", size=10)
-                
-                # Nettoyer et préparer le texte
-                clean_text = result_text.replace('\r\n', '\n').replace('\r', '\n')
-                
-                # Diviser en lignes et traiter chaque ligne
-                lines = clean_text.split('\n')
-                
-                for line in lines:
-                    try:
-                        # Nettoyer les caractères problématiques
-                        clean_line = line.encode('latin-1', 'replace').decode('latin-1')
-                        clean_line = clean_line.strip()
+                    pdf.cell(0, 6, clean_line, 0, 1)
                         
-                        if not clean_line:
-                            # Ligne vide - ajouter un petit espace
-                            pdf.ln(3)
-                            continue
-                        
-                        # Si la ligne est très longue, la découper
-                        if len(clean_line) > 120:
-                            wrapped_lines = textwrap.wrap(clean_line, width=120)
-                            for wrapped_line in wrapped_lines:
-                                pdf.cell(0, 6, wrapped_line, 0, 1)
-                        else:
-                            # Utiliser cell au lieu de multi_cell pour plus de contrôle
-                            pdf.cell(0, 6, clean_line, 0, 1)
-                            
-                    except Exception as line_error:
-                        # Si une ligne pose problème, l'ignorer et continuer
-                        st.warning(f"Ligne ignorée dans le PDF : {str(line_error)}")
-                        continue
-                
-                # Générer le PDF en mémoire
-                try:
-                    # Méthode moderne (FPDF2)
-                    pdf_bytes = bytes(pdf.output())
-                except:
-                    try:
-                        # Méthode classique
-                        pdf_string = pdf.output(dest='S')
-                        if isinstance(pdf_string, str):
-                            pdf_bytes = pdf_string.encode('latin-1')
-                        else:
-                            pdf_bytes = pdf_string
-                    except:
-                        # Dernière tentative
-                        pdf_bytes = pdf.output(dest='S').encode('latin-1', errors='replace')
-                        
-                    
-                            
-            except Exception as e:
-                st.error(f"Erreur génération PDF : {e}")
-                pdf_bytes = None
-
-
-
-
-
-            # --- GÉNÉRER PPTX EN MEMOIRE (VERSION AMÉLIORÉE) ---
+            except Exception as line_error:
+                # Si une ligne pose problème, l'ignorer et continuer
+                st.warning(f"Ligne ignorée dans le PDF : {str(line_error)}")
+                continue
+        
+        # Générer le PDF en mémoire
+        try:
+            # Méthode moderne (FPDF2)
+            pdf_bytes = bytes(pdf.output())
+        except:
             try:
-                from pptx import Presentation
-                from pptx.util import Inches
-                from io import BytesIO
-                
-                prs = Presentation()
-                
-                # Configuration
-                max_chars = 800  # Réduire pour éviter la surcharge
-                
-                # Découpage intelligent du texte
-                paragraphs = [p.strip() for p in result_text.split("\n\n") if p.strip()]
-                
-                if not paragraphs:
-                    # Si pas de paragraphes, découper par lignes
-                    paragraphs = [line.strip() for line in result_text.split("\n") if line.strip()]
-                
-                # Grouper les paragraphes en chunks
-                chunks = []
-                current_chunk = ""
-                
-                for para in paragraphs:
-                    if len(current_chunk) + len(para) + 2 < max_chars:
-                        current_chunk += para + "\n\n"
-                    else:
-                        if current_chunk:
-                            chunks.append(current_chunk.strip())
-                        current_chunk = para + "\n\n"
-                
+                # Méthode classique
+                pdf_string = pdf.output(dest='S')
+                if isinstance(pdf_string, str):
+                    pdf_bytes = pdf_string.encode('latin-1')
+                else:
+                    pdf_bytes = pdf_string
+            except:
+                # Dernière tentative
+                pdf_bytes = pdf.output(dest='S').encode('latin-1', errors='replace')
+                    
+    except Exception as e:
+        st.error(f"Erreur génération PDF : {e}")
+        pdf_bytes = None
+
+    # --- GÉNÉRER PPTX EN MEMOIRE ---
+    try:
+        from pptx import Presentation
+        from pptx.util import Inches
+        from io import BytesIO
+        
+        prs = Presentation()
+        
+        # Configuration
+        max_chars = 800  # Réduire pour éviter la surcharge
+        
+        # Découpage intelligent du texte
+        paragraphs = [p.strip() for p in result_text.split("\n\n") if p.strip()]
+        
+        if not paragraphs:
+            # Si pas de paragraphes, découper par lignes
+            paragraphs = [line.strip() for line in result_text.split("\n") if line.strip()]
+        
+        # Grouper les paragraphes en chunks
+        chunks = []
+        current_chunk = ""
+        
+        for para in paragraphs:
+            if len(current_chunk) + len(para) + 2 < max_chars:
+                current_chunk += para + "\n\n"
+            else:
                 if current_chunk:
                     chunks.append(current_chunk.strip())
-                
-                # Créer les slides
-                for i, chunk in enumerate(chunks):
-                    # Utiliser le layout titre + contenu
-                    slide_layout = prs.slide_layouts[1]
-                    slide = prs.slides.add_slide(slide_layout)
-                    
-                    # Titre du slide
-                    title = "Proposition"
-                    if i > 0:
-                        title += f" (Partie {i+1})"
-                    
-                    slide.shapes.title.text = title
-                    
-                    # Contenu
-                    try:
-                        # Essayer d'utiliser le placeholder de contenu
-                        if len(slide.placeholders) > 1:
-                            content_placeholder = slide.placeholders[1]
-                            text_frame = content_placeholder.text_frame
-                            text_frame.clear()
-                            text_frame.text = chunk
-                        else:
-                            raise IndexError("Pas de placeholder de contenu")
-                            
-                    except (IndexError, AttributeError):
-                        # Fallback : créer une zone de texte manuelle
-                        left = Inches(0.5)
-                        top = Inches(1.5)
-                        width = Inches(9)
-                        height = Inches(5.5)
-                        
-                        textbox = slide.shapes.add_textbox(left, top, width, height)
-                        text_frame = textbox.text_frame
-                        text_frame.text = chunk
-                        
-                        # Ajuster la taille de police si nécessaire
-                        for paragraph in text_frame.paragraphs:
-                            for run in paragraph.runs:
-                                run.font.size = Inches(0.02)  # Environ 14pt
-                
-                # Sauvegarder en mémoire
-                ppt_buffer = BytesIO()
-                prs.save(ppt_buffer)
-                ppt_bytes = ppt_buffer.getvalue()
-                
-            except Exception as e:
-                st.error(f"Erreur génération PPTX : {e}")
-                ppt_bytes = None
-
-            # --- BOUTONS DE TÉLÉCHARGEMENT ---
-            col_dl1, col_dl2 = st.columns([1,1])
+                current_chunk = para + "\n\n"
+        
+        if current_chunk:
+            chunks.append(current_chunk.strip())
+        
+        # Créer les slides
+        for i, chunk in enumerate(chunks):
+            # Utiliser le layout titre + contenu
+            slide_layout = prs.slide_layouts[1]
+            slide = prs.slides.add_slide(slide_layout)
             
-            with col_dl1:
-                if pdf_bytes:
-                    st.download_button(
-                        label="📥 Télécharger PDF",
-                        data=pdf_bytes,
-                        file_name="proposition.pdf",
-                        mime="application/pdf",
-                        key="download_pdf"
-                    )
+            # Titre du slide
+            title = "Proposition"
+            if i > 0:
+                title += f" (Partie {i+1})"
+            
+            slide.shapes.title.text = title
+            
+            # Contenu
+            try:
+                # Essayer d'utiliser le placeholder de contenu
+                if len(slide.placeholders) > 1:
+                    content_placeholder = slide.placeholders[1]
+                    text_frame = content_placeholder.text_frame
+                    text_frame.clear()
+                    text_frame.text = chunk
                 else:
-                    st.button("📥 Télécharger PDF (indisponible)", disabled=True)
+                    raise IndexError("Pas de placeholder de contenu")
+                        
+            except (IndexError, AttributeError):
+                # Fallback : créer une zone de texte manuelle
+                left = Inches(0.5)
+                top = Inches(1.5)
+                width = Inches(9)
+                height = Inches(5.5)
+                
+                textbox = slide.shapes.add_textbox(left, top, width, height)
+                text_frame = textbox.text_frame
+                text_frame.text = chunk
+                
+                # Ajuster la taille de police si nécessaire
+                for paragraph in text_frame.paragraphs:
+                    for run in paragraph.runs:
+                        run.font.size = Inches(0.02)  # Environ 14pt
+        
+        # Sauvegarder en mémoire
+        ppt_buffer = BytesIO()
+        prs.save(ppt_buffer)
+        ppt_bytes = ppt_buffer.getvalue()
+        
+    except Exception as e:
+        st.error(f"Erreur génération PPTX : {e}")
+        ppt_bytes = None
 
-            with col_dl2:
-                if ppt_bytes:
-                    st.download_button(
-                        label="📥 Télécharger PPTX",
-                        data=ppt_bytes,
-                        file_name="proposition.pptx",
-                        mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                        key="download_pptx"
-                    )
-                else:
-                    st.button("📥 Télécharger PPTX (indisponible)", disabled=True)
+    # --- BOUTONS DE TÉLÉCHARGEMENT ---
+    col_dl1, col_dl2 = st.columns([1,1])
+    
+    with col_dl1:
+        if pdf_bytes:
+            st.download_button(
+                label="📥 Télécharger PDF",
+                data=pdf_bytes,
+                file_name="proposition.pdf",
+                mime="application/pdf",
+                key="download_pdf"
+            )
+        else:
+            st.button("📥 Télécharger PDF (indisponible)", disabled=True)
 
-        # ---------------------------------------------------------------------------------
-        # DOCUMENTS SOURCES
-        # ---------------------------------------------------------------------------------
+    with col_dl2:
+        if ppt_bytes:
+            st.download_button(
+                label="📥 Télécharger PPTX",
+                data=ppt_bytes,
+                file_name="proposition.pptx",
+                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                key="download_pptx"
+            )
+        else:
+            st.button("📥 Télécharger PPTX (indisponible)", disabled=True)
 
+    # ---------------------------------------------------------------------------------
+    # DOCUMENTS SOURCES
+    # ---------------------------------------------------------------------------------
+    if "last_chunks" in st.session_state:
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
             <div class="modern-card">
@@ -576,6 +578,7 @@ if generate_button:
             </div>
         """, unsafe_allow_html=True)
 
+        top_chunks = st.session_state["last_chunks"]
         for i, (doc, score) in enumerate(top_chunks):
             score_color = "#10b981" if score > 0.8 else "#f59e0b" if score > 0.6 else "#ef4444"
             
@@ -597,17 +600,10 @@ if generate_button:
                     </div>
                 """, unsafe_allow_html=True)
 
-    else:
-        st.markdown("""
-            <div class="status-warning">
-                ⚠️ Veuillez décrire le besoin client avant de générer une proposition.
-            </div>
-        """, unsafe_allow_html=True)
-
 # ---------------------------------------------------------------------------------
 # SECTION FEEDBACK
 # ---------------------------------------------------------------------------------
-if "last_result" in st.session_state:
+if "last_result" in st.session_state and st.session_state.get("last_result", "").strip():
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("""
         <div class="modern-card">
@@ -622,8 +618,6 @@ if "last_result" in st.session_state:
 
     with col_fb1:
         if st.button("👍 Excellente proposition", use_container_width=True, key="btn_good"):
-            st.write("🔍 DEBUG: Bouton cliqué")
-            
             # Vérifier l'état de session
             if "last_result" not in st.session_state:
                 st.error("❌ Pas de résultat en session")
@@ -633,20 +627,12 @@ if "last_result" in st.session_state:
                 st.error("❌ Pas de query en session")
                 st.stop()
             
-            # Afficher les données
-            #st.write("📊 Données en session:")
-            #st.write(f"- Query: {len(st.session_state['last_query'])} caractères")
-            #st.write(f"- Result: {len(st.session_state['last_result'])} caractères")
-            
             with st.spinner("📄 Sauvegarde de la proposition dans les données..."):
                 try:
-                    #st.write("🔄 Appel de handle_feedback...")
-                    
                     filepath = handle_feedback(
                         st.session_state["last_query"],
                         st.session_state["last_result"]
                     )
-                    
                     
                     if filepath:
                         st.toast("📄 PDF sauvegardé et indexé avec succès.")
@@ -656,15 +642,6 @@ if "last_result" in st.session_state:
                         # Vérifications finales
                         if os.path.exists(filepath):
                             file_size = os.path.getsize(filepath)
-                            #st.write(f"✅ **Fichier confirmé** - Taille: {file_size:,} bytes")
-                            
-                            # Lister les fichiers dans le dossier
-                            data_dir = "data/generated"
-                            if os.path.exists(data_dir):
-                                files = os.listdir(data_dir)
-                                #st.write(f"📂 **Fichiers dans {data_dir}:** {len(files)}")
-                                #for f in files[-3:]:  # Montrer les 3 derniers
-                                    #st.write(f"  - {f}")
                         else:
                             st.error(f"❌ **Fichier non trouvé:** {filepath}")
                     else:
@@ -672,12 +649,6 @@ if "last_result" in st.session_state:
                         
                 except Exception as e:
                     st.error(f"❌ **Erreur lors de la sauvegarde:** {str(e)}")
-                    
-                    # Debug détaillé
-                    with st.expander("🔍 Détails de l'erreur"):
-                        st.code(str(e))
-                        import traceback
-                        st.code(traceback.format_exc())
 
     with col_fb2:
         if st.button("⚡️ Bonne, mais à améliorer", use_container_width=True, key="btn_ok"):
