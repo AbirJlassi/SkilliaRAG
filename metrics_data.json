@@ -238,5 +238,95 @@
       0.8725,
       0.7111
     ]
+  },
+  {
+    "timestamp": "2025-08-13T12:44:18.289211",
+    "query": "Une organisation X  avec des infrastructures critiques a besoin d'un plan de gestion de crise cyber ...",
+    "response_length": 2551,
+    "num_chunks_retrieved": 4,
+    "processing_time_seconds": 24.693,
+    "relevance_score": 0.7159,
+    "quality_score": 0.8584,
+    "chunk_scores": [
+      1.1,
+      1.0242,
+      0.8725,
+      0.7111
+    ]
+  },
+  {
+    "timestamp": "2025-08-13T12:44:18.528648",
+    "query": "Une organisation X  avec des infrastructures critiques a besoin d'un plan de gestion de crise cyber ...",
+    "response_length": 2551,
+    "num_chunks_retrieved": 4,
+    "processing_time_seconds": 26.901,
+    "relevance_score": 0.7159,
+    "quality_score": 0.8584,
+    "chunk_scores": [
+      1.1,
+      1.0242,
+      0.8725,
+      0.7111
+    ]
+  },
+  {
+    "timestamp": "2025-08-13T12:52:35.076351",
+    "query": "Une organisation X  avec des infrastructures critiques a besoin d'un plan de gestion de crise cyber ...",
+    "response_length": 2581,
+    "num_chunks_retrieved": 4,
+    "processing_time_seconds": 16.775,
+    "relevance_score": 0.7159,
+    "quality_score": 0.8743,
+    "chunk_scores": [
+      1.1,
+      1.0242,
+      0.8725,
+      0.7111
+    ]
+  },
+  {
+    "timestamp": "2025-08-13T12:52:35.233413",
+    "query": "Une organisation X  avec des infrastructures critiques a besoin d'un plan de gestion de crise cyber ...",
+    "response_length": 2581,
+    "num_chunks_retrieved": 4,
+    "processing_time_seconds": 17.002,
+    "relevance_score": 0.7159,
+    "quality_score": 0.8743,
+    "chunk_scores": [
+      1.1,
+      1.0242,
+      0.8725,
+      0.7111
+    ]
+  },
+  {
+    "timestamp": "2025-08-13T13:07:27.849346",
+    "query": "Une organisation X  avec des infrastructures critiques a besoin d'un plan de gestion de crise cyber ...",
+    "response_length": 2800,
+    "num_chunks_retrieved": 4,
+    "processing_time_seconds": 18.544,
+    "relevance_score": 0.7159,
+    "quality_score": 0.9387,
+    "chunk_scores": [
+      1.1,
+      1.0242,
+      0.8725,
+      0.7111
+    ]
+  },
+  {
+    "timestamp": "2025-08-13T13:08:17.210736",
+    "query": "Une organisation X  avec des infrastructures critiques a besoin d'un plan de gestion de crise cyber ...",
+    "response_length": 2625,
+    "num_chunks_retrieved": 4,
+    "processing_time_seconds": 14.345,
+    "relevance_score": 0.7159,
+    "quality_score": 0.9194,
+    "chunk_scores": [
+      1.1,
+      1.0242,
+      0.8725,
+      0.7111
+    ]
   }
 ]
