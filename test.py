@@ -521,24 +521,6 @@ if "last_result" in st.session_state and st.session_state.get("last_result", "")
 def display_metrics_dashboard():
     stats = rag_metrics.get_dashboard_stats()
 
-    if stats['recent_queries']:
-        recent_queries_html = '<div class="recent-queries">'
-        recent_queries_html += '<h3 style="margin-bottom: 1rem; font-size: 1.2rem;">🕐 Dernières requêtes</h3>'
-        for q in stats['recent_queries'][-3:]:
-            recent_queries_html += f"""
-            <div class="query-item">
-                <div class="query-text">"{q['query']}"</div>
-                <div class="query-stats">
-                    Pertinence: {q['relevance_score']:.3f} | 
-                    Qualité: {q['quality_score']:.3f} | 
-                    Temps: {q['processing_time_seconds']:.2f}s
-                </div>
-            </div>
-            """
-        recent_queries_html += '</div>'
-    else:
-        recent_queries_html = '<p style="text-align: center; margin-top: 1rem; opacity: 0.7;">Aucune requête récente</p>'
-
     html_code = f"""
     <style>
         .metrics-dashboard {{ font-family: Arial, sans-serif; padding: 20px; }}
@@ -547,10 +529,6 @@ def display_metrics_dashboard():
             box-shadow: 0 2px 6px rgba(0,0,0,0.1); }}
         .metric-icon {{ font-size: 1.5rem; margin-bottom: 0.5rem; }}
         .metric-value {{ font-size: 1.4rem; font-weight: bold; }}
-        .query-item {{ background: #fff; padding: 0.8rem; margin-bottom: 0.5rem; border-radius: 6px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.05); }}
-        .query-text {{ font-size: 0.95rem; margin-bottom: 0.3rem; }}
-        .query-stats {{ font-size: 0.85rem; color: #555; }}
     </style>
     <div class="metrics-dashboard">
         <h2 style="text-align: center; margin-bottom: 2rem; font-size: 1.8rem;">
@@ -578,14 +556,14 @@ def display_metrics_dashboard():
                 <div class="metric-label">Temps moyen</div>
             </div>
         </div>
-        {recent_queries_html}
     </div>
     """
 
-    # ✅ Affichage via Streamlit components (nécessite l'import au début)
-    components.html(html_code, height=600, scrolling=True)
+    # ✅ Affichage via Streamlit components
+    components.html(html_code, height=400, scrolling=False)
 
 display_metrics_dashboard()
+
 
 # ---------------------------------------------------------------------------------
 # FOOTER INFORMATIF

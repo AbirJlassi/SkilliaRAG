@@ -328,5 +328,20 @@
       0.8725,
       0.7111
     ]
+  },
+  {
+    "timestamp": "2025-08-13T13:12:38.075596",
+    "query": "Une organisation X  avec des infrastructures critiques a besoin d'un plan de gestion de crise cyber ...",
+    "response_length": 2833,
+    "num_chunks_retrieved": 4,
+    "processing_time_seconds": 16.504,
+    "relevance_score": 0.7159,
+    "quality_score": 0.9174,
+    "chunk_scores": [
+      1.1,
+      1.0242,
+      0.8725,
+      0.7111
+    ]
   }
 ]
