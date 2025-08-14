@@ -4,6 +4,7 @@ import time
 import json
 import os
 from datetime import datetime
+import streamlit as st
 from typing import List, Tuple, Dict, Any
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -198,3 +199,33 @@ class RAGMetrics:
 
 # Instance globale
 rag_metrics = RAGMetrics()
+
+def display_metrics_dashboard():
+    stats = rag_metrics.get_dashboard_stats()
+
+    with st.expander("📊 Métriques de performance du RAG – Voir les statistiques"):
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.metric(
+                label="🔍 Requêtes traitées",
+                value=stats['total_queries']
+            )
+
+        with col2:
+            st.metric(
+                label="🎯 Score pertinence (Query-Chunks)",
+                value=f"{stats['avg_relevance']:.3f}"
+            )
+
+        with col3:
+            st.metric(
+                label="✨ Qualité de réponse",
+                value=f"{stats['avg_quality']:.3f}"
+            )
+
+        with col4:
+            st.metric(
+                label="⚡ Temps de réponse moyen",
+                value=f"{stats['avg_processing_time']:.2f} s"
+            )

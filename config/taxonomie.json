@@ -1,0 +1,45 @@
+{
+  "Secteurs d'activité": {
+    "Services Financiers": ["banque", "banques", "banque commerciale", "banque d'investissement", "banque centrale", "assurance", "assurances vie", "assurances IARD", "mutuelles", "services de paiement", "monétique", "virement", "transfert d'argent"],
+    "Télécommunications": ["opérateur mobile", "télécom", "FAI", "fournisseur d'accès internet", "réseau mobile", "services de télécommunications"],
+    "Secteur Public": ["ministère", "administration", "collectivité locale", "caisse de retraite", "CNRPS", "sécurité sociale", "gouvernement électronique", "e-gov"],
+    "Énergie et Utilities": ["électricité", "gaz", "distribution d'énergie", "réseau électrique", "centrale électrique"],
+    "Transport et Logistique": ["transport ferroviaire", "train", "transport maritime", "port", "logistique", "chaîne d'approvisionnement"],
+    "Industrie": ["automobile", "aéronautique", "industrie chimique", "pharmaceutique", "production industrielle"]
+  },
+  "Contexte métier": {
+    "Enjeux": ["résilience", "continuité d'activité", "conformité", "compétitivité", "transformation digitale", "modernisation", "innovation"],
+    "Acteurs": ["direction générale", "DG", "DSI", "RSSI", "métiers", "équipes opérationnelles", "utilisateurs finaux", "clients", "partenaires"],
+    "Réglementation": ["RGPD", "ISO 22301", "ISO 27001", "DORA", "NIS2", "conformité réglementaire", "norme", "référentiel"],
+    "Secteurs spécifiques": ["banque", "assurance", "télécoms", "secteur public", "industrie"]
+  },
+  "Contexte technique": {
+    "Infrastructure": ["datacenter", "centre de données", "cloud", "infrastructure cloud", "virtualisation", "réseau", "LAN", "WAN", "VPN", "sécurité réseau"],
+    "Applications": ["ERP", "SAP", "Oracle", "CRM", "Salesforce", "système de facturation", "BI", "business intelligence", "application métier"],
+    "Données": ["big data", "analytics", "analyse de données", "MDM", "master data management", "gouvernance des données", "data quality"],
+    "Technologies émergentes": ["intelligence artificielle", "IA", "machine learning", "IoT", "internet des objets", "blockchain", "BYOD", "mobile"]
+  },
+  "Démarche / Méthodologie": {
+    "Analyse initiale": ["audit", "diagnostic", "état des lieux", "analyse de maturité", "évaluation"],
+    "Planification stratégique": ["schéma directeur", "SDSI", "stratégie digitale", "feuille de route", "plan de transformation"],
+    "Conception": ["architecture cible", "urbanisation SI", "design technique", "spécifications fonctionnelles", "spécifications techniques"],
+    "Mise en œuvre": ["intégration", "déploiement", "migration", "installation", "implémentation"],
+    "Validation": ["tests", "recette", "homologation", "UAT", "validation technique"],
+    "Exploitation et suivi": ["MCO", "maintenance", "support", "pilotage", "tableau de bord", "indicateurs"]
+  },
+  "Phases du projet": {
+    "Cadrage": ["définition des besoins", "périmètre", "analyse des risques", "étude de faisabilité"],
+    "Conception": ["design", "spécifications", "maquettes", "prototypage"],
+    "Réalisation": ["développement", "programmation", "configuration", "intégration"],
+    "Tests et validation": ["recette", "UAT", "tests fonctionnels", "tests techniques"],
+    "Déploiement": ["mise en production", "formation", "documentation"],
+    "Exploitation": ["support", "maintenance", "MCO", "suivi de performance"]
+  },
+  "Continuité et Résilience": {
+    "PCA": ["plan de continuité", "PCA", "business continuity plan", "ISO 22301", "RTO", "RPO"],
+    "PRA": ["plan de reprise d'activité", "PRA", "DRP", "disaster recovery", "site de secours"],
+    "Gestion de crise": ["cellule de crise", "communication de crise", "scénario de crise", "alerte", "mobilisation"],
+    "BIA": ["analyse d'impact", "BIA", "processus critiques", "cartographie des actifs"],
+    "Tests et exercices": ["simulation", "exercice de crise", "test PCA", "exercice cyber"]
+  }
+}

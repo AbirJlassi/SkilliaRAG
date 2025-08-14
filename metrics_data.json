@@ -343,5 +343,95 @@
       0.8725,
       0.7111
     ]
+  },
+  {
+    "timestamp": "2025-08-13T17:39:21.422386",
+    "query": "Banque Attijari ayant des infrastructures critiques a besoin d'un plan de gestion de crise cyber inc...",
+    "response_length": 2676,
+    "num_chunks_retrieved": 4,
+    "processing_time_seconds": 13.815,
+    "relevance_score": 0.7009,
+    "quality_score": 0.9791,
+    "chunk_scores": [
+      1.1,
+      0.8734,
+      0.8382,
+      0.8369
+    ]
+  },
+  {
+    "timestamp": "2025-08-14T09:17:20.638508",
+    "query": "Pour une banque, développement et conception d'un chatbot conversationnel pour l'évaluation des risq...",
+    "response_length": 3137,
+    "num_chunks_retrieved": 4,
+    "processing_time_seconds": 20.021,
+    "relevance_score": 0.4084,
+    "quality_score": 1.0,
+    "chunk_scores": [
+      1.0,
+      0.9234,
+      0.8096,
+      0.7659
+    ]
+  },
+  {
+    "timestamp": "2025-08-14T09:52:52.900514",
+    "query": "Pour une banque, développement et conception d'un chatbot conversationnel pour l'évaluation des risq...",
+    "response_length": 3269,
+    "num_chunks_retrieved": 4,
+    "processing_time_seconds": 14.047,
+    "relevance_score": 0.4084,
+    "quality_score": 1.0,
+    "chunk_scores": [
+      1.0,
+      0.9234,
+      0.8096,
+      0.7659
+    ]
+  },
+  {
+    "timestamp": "2025-08-14T10:05:15.692387",
+    "query": "Pour une banque, développement et conception d'un chatbot conversationnel pour l'évaluation des risq...",
+    "response_length": 3193,
+    "num_chunks_retrieved": 4,
+    "processing_time_seconds": 13.75,
+    "relevance_score": 0.4084,
+    "quality_score": 1.0,
+    "chunk_scores": [
+      1.0,
+      0.9234,
+      0.8096,
+      0.7659
+    ]
+  },
+  {
+    "timestamp": "2025-08-14T10:09:59.778290",
+    "query": "Pour une banque, développement et conception d'un chatbot conversationnel pour l'évaluation des risq...",
+    "response_length": 3496,
+    "num_chunks_retrieved": 4,
+    "processing_time_seconds": 11.928,
+    "relevance_score": 0.4084,
+    "quality_score": 1.0,
+    "chunk_scores": [
+      1.0,
+      0.9234,
+      0.8096,
+      0.7659
+    ]
+  },
+  {
+    "timestamp": "2025-08-14T10:13:49.757758",
+    "query": "Pour une banque, développement et conception d'un chatbot conversationnel pour l'évaluation des risq...",
+    "response_length": 3784,
+    "num_chunks_retrieved": 4,
+    "processing_time_seconds": 12.221,
+    "relevance_score": 0.4084,
+    "quality_score": 1.0,
+    "chunk_scores": [
+      1.0,
+      0.9234,
+      0.8096,
+      0.7659
+    ]
   }
 ]

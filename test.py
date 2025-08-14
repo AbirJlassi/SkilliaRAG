@@ -5,13 +5,13 @@ from io import BytesIO
 import os
 import time
 import streamlit as st
-import streamlit.components.v1 as components  # ✅ IMPORTANT: pour components.html
+import streamlit.components.v1 as components  
 from modules.loader import load_pdf
 from modules.rag_core import full_rag_pipeline
 from modules.feedback import handle_feedback
 from modules.splitter import splitdocuments
 from modules.vector_store import load_index
-from modules.metrics import rag_metrics  # Module métriques
+from modules.metrics import display_metrics_dashboard, rag_metrics  
 from main import prepare_index_from_directory
 from fpdf import FPDF
 from pptx import Presentation
@@ -192,6 +192,12 @@ with st.expander("📂 Gestion documentaire – Voir et ajouter des documents"):
             prepare_index_from_directory(data_dir, index_path)
 
         st.success("✅ Index vectoriel reconstruit avec succès à partir des documents !")
+        
+        
+
+# Affichage des métriques de performance du rag 
+display_metrics_dashboard()
+
 
 # --------------------------------------------------------------------
 # SECTION PRINCIPALE
@@ -217,7 +223,7 @@ user_query = st.text_area(
 st.markdown("<br>", unsafe_allow_html=True)
 col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
 with col_btn2:
-    generate_button = st.button("⚡ Générer la proposition ", use_container_width=True, type="primary")
+    generate_button = st.button("⚡ Générer la propale ", use_container_width=True, type="primary")
 
 # ---------------------------------------------------------------------------------
 # TRAITEMENT ET RÉSULTATS AVEC MÉTRIQUES
@@ -275,25 +281,93 @@ if generate_button:
 if "last_result" in st.session_state and st.session_state.get("last_result", "").strip():
     result_text = st.session_state["last_result"]
 
+    # Style CSS global
+    st.markdown("""
+    <style>
+        .metrics-card {
+            background: linear-gradient(145deg, #ffffff, #f4f6f8);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+            border-left: 5px solid #2196f3;
+        }
+        .metrics-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #1a237e;
+        }
+        .metrics-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+        .metric-item {
+            flex: 1 1 200px;
+            background: #f9fafb;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0px 1px 3px rgba(0,0,0,0.05);
+        }
+        .metric-item strong {
+            display: block;
+            font-size: 0.9rem;
+            color: #455a64;
+            margin-bottom: 0.3rem;
+        }
+        .metric-item span {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #0d47a1;
+        }
+        .result-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0px 2px 8px rgba(0,0,0,0.08);
+        }
+        .result-card h3 {
+            margin-top: 0;
+            color: #1565c0;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
     # Afficher les métriques calculées localement
     if "last_metrics" in st.session_state:
         metrics = st.session_state["last_metrics"]
+
         st.markdown(f"""
-        <div class="modern-card" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-left: 4px solid var(--accent-color);">
-            <h4 style="color: var(--text-dark); margin-bottom: 1rem;">📈 Métriques de cette génération</h4>
-            <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-                <div><strong>🎯 Pertinence:</strong> <span style="color: var(--primary-color);">{metrics['relevance_score']:.3f}</span></div>
-                <div><strong>✨ Qualité:</strong> <span style="color: var(--primary-color);">{metrics['quality_score']:.3f}</span></div>
-                <div><strong>⚡ Temps:</strong> <span style="color: var(--primary-color);">{metrics['processing_time_seconds']:.2f}s</span></div>
-                <div><strong>📄 Chunks:</strong> <span style="color: var(--primary-color);">{metrics['num_chunks_retrieved']}</span></div>
+        <div class="metrics-card">
+            <div class="metrics-title">📈 Métriques d'évaluation de la réponse</div>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <strong>🎯 Pertinence Query-Chunks</strong>
+                    <span>{metrics['relevance_score']:.3f}</span>
+                </div>
+                <div class="metric-item">
+                    <strong>✨ Qualité de la réponse</strong>
+                    <span>{metrics['quality_score']:.3f}</span>
+                </div>
+                <div class="metric-item">
+                    <strong>⚡ Temps de traitement</strong>
+                    <span>{metrics['processing_time_seconds']:.2f}s</span>
+                </div>
+                <div class="metric-item">
+                    <strong>📄 Chunks récupérés</strong>
+                    <span>{metrics['num_chunks_retrieved']}</span>
+                </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
+    # Affichage du texte de proposition
     st.markdown(f"""
-    <div class="modern-card">
-        <h3 class="section-header">📄 Proposition Générée</h3>
-        <div style="white-space: pre-wrap; font-size: 1rem; line-height: 1.5;">
+    <div class="result-card">
+        <h3>📄 Proposition Générée</h3>
+        <div style="white-space: pre-wrap; font-size: 1rem; line-height: 1.5; color: #37474f;">
             {result_text}
         </div>
     </div>
@@ -466,7 +540,7 @@ if "last_result" in st.session_state and st.session_state.get("last_result", "")
                 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------------
-# SECTION FEEDBACK AVEC MISE À JOUR DES MÉTRIQUES
+# SECTION FEEDBACK 
 # ---------------------------------------------------------------------------------
 if "last_result" in st.session_state and st.session_state.get("last_result", "").strip():
     st.markdown("<br>", unsafe_allow_html=True)
@@ -515,54 +589,6 @@ if "last_result" in st.session_state and st.session_state.get("last_result", "")
                 </div>
             """, unsafe_allow_html=True)
 
-# ---------------------------------------------------------------------------------
-# DASHBOARD MÉTRIQUES
-# ---------------------------------------------------------------------------------
-def display_metrics_dashboard():
-    stats = rag_metrics.get_dashboard_stats()
-
-    html_code = f"""
-    <style>
-        .metrics-dashboard {{ font-family: Arial, sans-serif; padding: 20px; }}
-        .metrics-row {{ display: flex; justify-content: space-around; margin-bottom: 2rem; }}
-        .metric-card {{ background: #f8f9fa; padding: 1rem; border-radius: 10px; text-align: center; width: 22%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1); }}
-        .metric-icon {{ font-size: 1.5rem; margin-bottom: 0.5rem; }}
-        .metric-value {{ font-size: 1.4rem; font-weight: bold; }}
-    </style>
-    <div class="metrics-dashboard">
-        <h2 style="text-align: center; margin-bottom: 2rem; font-size: 1.8rem;">
-            📊 Tableau de bord des performances RAG
-        </h2>
-        <div class="metrics-row">
-            <div class="metric-card">
-                <div class="metric-icon">🔍</div>
-                <div class="metric-value">{stats['total_queries']}</div>
-                <div class="metric-label">Requêtes traitées</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-icon">🎯</div>
-                <div class="metric-value">{stats['avg_relevance']:.3f}</div>
-                <div class="metric-label">Score pertinence</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-icon">✨</div>
-                <div class="metric-value">{stats['avg_quality']:.3f}</div>
-                <div class="metric-label">Qualité réponse</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-icon">⚡</div>
-                <div class="metric-value">{stats['avg_processing_time']:.2f}s</div>
-                <div class="metric-label">Temps moyen</div>
-            </div>
-        </div>
-    </div>
-    """
-
-    # ✅ Affichage via Streamlit components
-    components.html(html_code, height=400, scrolling=False)
-
-display_metrics_dashboard()
 
 
 # ---------------------------------------------------------------------------------
