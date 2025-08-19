@@ -433,5 +433,20 @@
       0.8096,
       0.7659
     ]
+  },
+  {
+    "timestamp": "2025-08-19T11:28:19.657340",
+    "query": "Banque Attijari ayant des infrastructures critiques a besoin d'un plan de gestion de crise cyber inc...",
+    "response_length": 3058,
+    "num_chunks_retrieved": 4,
+    "processing_time_seconds": 17.216,
+    "relevance_score": 0.7009,
+    "quality_score": 1.0,
+    "chunk_scores": [
+      1.1,
+      0.8734,
+      0.8382,
+      0.8369
+    ]
   }
 ]

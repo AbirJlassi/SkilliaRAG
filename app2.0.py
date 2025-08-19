@@ -16,7 +16,7 @@ from main import prepare_index_from_directory
 from fpdf import FPDF
 from pptx import Presentation
 from pptx.util import Inches, Pt
-
+from modules.document_annotater_llm import annotate_with_llm, enrich_taxonomy, load_taxonomy
 # ---------------------------------------------------------------------------------
 # CONFIGURATION GÉNÉRALE
 # ---------------------------------------------------------------------------------
@@ -172,6 +172,22 @@ with st.expander("📂 Gestion documentaire – Voir et ajouter des documents"):
         with open(save_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
         st.success(f"✅ Le fichier **{uploaded_file.name}** a été ajouté avec succès.")
+        
+        #annotation : extraction des tags et enrichissement de la taxonomie
+        # Charger le contenu du doc
+        pdf_docs = load_pdf(save_path)
+        full_text = " ".join([doc.page_content for doc in pdf_docs])
+        taxonomy_path="config/taxonomie.json"
+        taxonomy = load_taxonomy(taxonomy_path)
+        # Générer les tags avec l’annotateur choisi
+        tags = annotate_with_llm(full_text, taxonomy)
+
+        st.write("🏷 **Annotations détectées :**", tags)
+
+        # Enrichir la taxonomie automatiquement
+        updated_taxonomy = enrich_taxonomy(tags, taxonomy_path)
+        st.success("✅ Taxonomie enrichie avec les nouvelles annotations !")
+    
 
     # 3. Bouton pour réindexer après ajout
     if st.button("🔄 Réindexer après ajout de documents"):

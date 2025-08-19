@@ -13,11 +13,11 @@ from langchain.chains import LLMChain
 
 def full_rag_pipeline(query: str, index_path: str = "vector_store/propales_index", faiss_k: int = 20, final_k: int = 4) -> Tuple[str, List[Tuple[Document, float]]]:
     """
-    Pipeline complet : recherche FAISS → reranking → génération LLaMA3 (avec contrôle du contexte)
-    AJOUT : Intégration des métriques de performance
+    Pipeline complet : recherche FAISS → reranking → génération  (avec contrôle du contexte)
+     Intégration des métriques de performance
     """
     
-    # AJOUT : Mesure du temps de départ
+    # Mesure du temps de départ
     start_time = time.time()
     
     try:
