@@ -14,3 +14,4 @@ langchain-openai
 fpdf2
 python-pptx
 langchain_huggingface
+pypdf
