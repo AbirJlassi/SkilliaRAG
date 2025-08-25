@@ -44,28 +44,59 @@ User Query → Retriever (FAISS) → Context → LLM → Draft Proposal → Expo
 - **Storage**: Local filesystem + FAISS index
 ---
 
-## 📂 Project Structure
+##  Project Structure
 SkilliaRAG/
-│── app.py # Main Streamlit app
-│── main.py # Index preparation and initialization
-│── requirements.txt
+│── app.py                  # Main Streamlit app
+│── main.py                 # Index preparation and initialization
 │
-├── modules/ # Core logic
-│ ├── loader.py # PDF loader
-│ ├── splitter.py # Text splitting
-│ ├── embedder.py # Embedding models
-│ ├── vector_store.py # FAISS index mgmt
-│ ├── rag_core.py # Full RAG pipeline
-│ ├── feedback.py # Feedback handling
+├── modules/                # Core logic
+│   ├── loader.py           # PDF loader
+│   ├── splitter.py         # Text splitting
+│   ├── embedder.py         # Embedding models
+│   ├── vector_store.py     # FAISS index management
+│   ├── rag_core.py         # Full RAG pipeline
+│   ├── feedback.py         # Feedback handling
 │
-├── data/ # Uploaded & generated docs
-├── vector_store/ # FAISS indexes
-└── README.md 
+├── data/                   # Uploaded & generated documents
+├── vector_store/           # FAISS indexes
+└── README.md               # Documentation
 
-## ▶️ Quickstart
+
+## ▶️ How to Run
 
 ### 1) Clone the repository
 ```bash
 git clone https://github.com/<your-org>/SkilliaRAG.git
 cd SkilliaRAG
+```
+### 2) Create & activate a virtual environment
+```bash
+# Create virtual environment
+python -m venv venv
 
+# Activate on Linux/Mac
+source venv/bin/activate
+
+# Activate on Windows (PowerShell)
+venv\Scripts\Activate.ps1
+
+# Activate on Windows (cmd)
+venv\Scripts\activate.bat
+```
+### 3) Install dependencies
+```bash
+pip install -r requirements.txt
+```
+### 4) Launch the app
+```bash
+streamlit run app.py
+```
+
+## Usage
+- Upload internal documents via the UI.
+
+- Generate a proposal using the RAG engine.
+
+- Review & provide feedback.
+
+- Export the result as PDF or PPTX.
