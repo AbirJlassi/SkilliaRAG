@@ -45,21 +45,21 @@ User Query → Retriever (FAISS) → Context → LLM → Draft Proposal → Expo
 ---
 
 ##  Project Structure
-SkilliaRAG/
-│── app.py                  # Main Streamlit app
-│── main.py                 # Index preparation and initialization
-│
-├── modules/                # Core logic
-│   ├── loader.py           # PDF loader
-│   ├── splitter.py         # Text splitting
-│   ├── embedder.py         # Embedding models
-│   ├── vector_store.py     # FAISS index management
-│   ├── rag_core.py         # Full RAG pipeline
-│   ├── feedback.py         # Feedback handling
-│
-├── data/                   # Uploaded & generated documents
-├── vector_store/           # FAISS indexes
-└── README.md               # Documentation
+SkilliaRAG/ <br>
+│── app.py                  # Main Streamlit app <br>
+│── main.py                 # Index preparation and initialization <br>
+│ <br>
+├── modules/                # Core logic <br>
+│   ├── loader.py           # PDF loader <br>
+│   ├── splitter.py         # Text splitting <br>
+│   ├── embedder.py         # Embedding models <br>
+│   ├── vector_store.py     # FAISS index management <br>
+│   ├── rag_core.py         # Full RAG pipeline <br>
+│   ├── feedback.py         # Feedback handling <br>
+│ <br>
+├── data/                   # Uploaded & generated documents <br>
+├── vector_store/           # FAISS indexes <br>
+└── README.md               # Documentation <br>
 
 
 ## ▶️ How to Run
